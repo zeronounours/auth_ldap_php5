@@ -22,7 +22,6 @@
 /**
  * 	Notes -
  * 	LDAP configuration tested on Zentyal 3.5 Samba LDAP server.
- * 	The users created will have a prefix 'ldapuser_'
  * 	The userlist is cached but the password is always validated against LDAP server
  * 
  * 	ToDo - 

@@ -1,3 +1,9 @@
+2014-08-16 stormbyte <nawalhof@itnature.nl>
+    version 0.02
+    LDAP Username e-mail
+    Authentication via Api ( cannot use prefix 'ldapuser_' with the api )
+    bugfixes
+
 2014-08-14 stormbyte <nawalhof@itnature.nl>
     version 0.01
     LDAP Login validation
