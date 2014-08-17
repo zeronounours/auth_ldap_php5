@@ -2,7 +2,7 @@
  * 	Tiny Tiny RSS plugin for LDAP authentication
  * 	@author Stormbyte (nawalhof@itnature.nl)
  * 	Requires php5-ldap
- * 	@version 0.01
+ * 	@version 0.02
  * 
  */
  
