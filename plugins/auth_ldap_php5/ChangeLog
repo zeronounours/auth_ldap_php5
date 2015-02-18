@@ -1,3 +1,7 @@
+2015-02-18 zeroNounours <zeronounours@zeronounours.eu>
+    version 0.03
+    LDAP attributes configurable ( extend supported LDAP implementations )
+
 2014-08-16 stormbyte <nawalhof@itnature.nl>
     version 0.02
     LDAP Username e-mail

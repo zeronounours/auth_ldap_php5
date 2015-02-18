@@ -2,8 +2,9 @@
 /**
  * 	Tiny Tiny RSS plugin for LDAP authentication
  * 	@author Stormbyte (nawalhof@itnature.nl)
+ * 	@contributor zeroNounours (zeronounours@zeronounours.eu)
  * 	Requires php5-ldap
- * 	@version 0.02
+ * 	@version 0.03
  * 
  */
  
@@ -14,15 +15,22 @@
  * 	define('LDAP_AUTH_BASEDN', 'dc=example,dc=com');
  * 	define('LDAP_AUTH_BINDDN', 'cn=serviceaccount,dc=example,dc=com');
  * 	define('LDAP_AUTH_BINDPW', 'ServiceAccountsPassword');
- * 	
+ *
  * 	Load a Filter that holds all available members
  * 	define('LDAP_AUTH_SEARCHFILTER', '(memberof=CN=TTrss,CN=Users,DC=example,DC=com)');
+ *
+ * 	Define the user's LDAP attributes to look at (in lowercase)
+ * 	define('LDAP_AUTH_UID_ATTR', 'samaccountname');     // uid for openLDAP
+ * 	define('LDAP_AUTH_EMAIL_ATTR', 'mail');
+ * 	define('LDAP_AUTH_DISPLAYNAME_ATTR', 'displayname');
  *    
  */
 
 /**
  * 	Notes -
- * 	LDAP configuration tested on Zentyal 3.5 Samba LDAP server.
+ * 	LDAP configuration tested on :
+ * 	  * Zentyal 3.5 Samba LDAP server
+ * 	  * openLDAP 2.4
  * 	The userlist is cached but the password is always validated against LDAP server
  * 
  * 	ToDo - 
@@ -40,6 +48,9 @@ class Auth_Ldap_Php5 extends Plugin implements IAuthModule {
 			$bindPW = null,
 			$baseDN = null,
 			$searchFilter = null,
+                        $uidAttr = null,
+                        $emailAttr = null,
+                        $displaynameAttr = null,
 			$userDN = null,
 			$userDisplayName = null,
 			$userMail = null,
@@ -55,15 +66,19 @@ class Auth_Ldap_Php5 extends Plugin implements IAuthModule {
 		$this->load_data();
 		
 		$this->serverUri 	= (defined('LDAP_AUTH_SERVER_URI'))?LDAP_AUTH_SERVER_URI:null;
-        $this->bindDN 		= (defined('LDAP_AUTH_BINDDN'))?LDAP_AUTH_BINDDN:null;
-        $this->bindPW 		= (defined('LDAP_AUTH_BINDPW'))?LDAP_AUTH_BINDPW:null;
-        $this->baseDN 		= (defined('LDAP_AUTH_BASEDN'))?LDAP_AUTH_BASEDN:null;
-        
-        $this->searchFilter = (defined('LDAP_AUTH_SEARCHFILTER'))?LDAP_AUTH_SEARCHFILTER:null;
+                $this->bindDN 		= (defined('LDAP_AUTH_BINDDN'))?LDAP_AUTH_BINDDN:null;
+                $this->bindPW 		= (defined('LDAP_AUTH_BINDPW'))?LDAP_AUTH_BINDPW:null;
+                $this->baseDN 		= (defined('LDAP_AUTH_BASEDN'))?LDAP_AUTH_BASEDN:null;
+                
+                $this->uidAttr 		= (defined('LDAP_AUTH_UID_ATTR'))?LDAP_AUTH_UID_ATTR:'samaccountname';
+                $this->emailAttr 	= (defined('LDAP_AUTH_EMAIL_ATTR'))?LDAP_AUTH_EMAIL_ATTR:'mail';
+                $this->displaynameAttr 	= (defined('LDAP_AUTH_DISPLAYNAME_ATTR'))?LDAP_AUTH_DISPLAYNAME_ATTR:'displayname';
+
+                $this->searchFilter = (defined('LDAP_AUTH_SEARCHFILTER'))?LDAP_AUTH_SEARCHFILTER:null;
 	}
 
 	function about() {
-		return array(0.02, 
+		return array(0.03, 
 			"Authenticate against LDAP server", 
 			"Stormbyte", 
 			true);
@@ -139,8 +154,8 @@ class Auth_Ldap_Php5 extends Plugin implements IAuthModule {
 		
 		if( $ldapSearchResult && isset($ldapSearchResult[$user])){
 			$this->userDN = $ldapSearchResult[$user]['dn'];
-			$this->userDisplayName = $ldapSearchResult[$user]['displayname'];
-			$this->userMail = $ldapSearchResult[$user]['mail'];
+			$this->userDisplayName = $ldapSearchResult[$user][$this->displaynameAttr];
+			$this->userMail = $ldapSearchResult[$user][$this->emailAttr];
 			return true;
 		}
 		
@@ -157,11 +172,11 @@ class Auth_Ldap_Php5 extends Plugin implements IAuthModule {
 		if( $ldapSearchResult && $ldapSearchResult['count'] ){
 			for( $i = 0; $i < $ldapSearchResult['count']; $i++ ){
 				$newAccount = array();
-				$newAccount['samaccountname'] = $ldapSearchResult[$i]['samaccountname'][0];
+				$newAccount[$this->uidAttr] = $ldapSearchResult[$i][$this->uidAttr][0];
 				$newAccount['dn'] = $ldapSearchResult[$i]['dn'];
-				$newAccount['displayname'] = $ldapSearchResult[$i]['displayname'][0];
-				$newAccount['mail'] = $ldapSearchResult[$i]['mail'][0];
-				$result[$ldapSearchResult[$i]['samaccountname'][0]] = $newAccount;
+				$newAccount[$this->displaynameAttr] = $ldapSearchResult[$i][$this->displaynameAttr][0];
+				$newAccount[$this->emailAttr] = $ldapSearchResult[$i][$this->emailAttr][0];
+				$result[$ldapSearchResult[$i][$this->uidAttr][0]] = $newAccount;
 			}
 		}
 		return $result;
